@@ -38,9 +38,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Greenshot.Base\Greenshot.Base.csproj" />
-    <ProjectReference Include="..\Greenshot.Editor\Greenshot.Editor.csproj" />
-    <ProjectReference Include="..\Greenshot.BuildTasks\Greenshot.BuildTasks.csproj" ReferenceOutputAssembly="false" ExcludeAssets="all" />
+    <Reference Include="Greenshot.Base">
+      <HintPath>..\Greenshot.Base\bin\$(Configuration)\$(TargetFramework)\Greenshot.Base.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Greenshot.Editor">
+      <HintPath>..\Greenshot.Editor\bin\$(Configuration)\$(TargetFramework)\Greenshot.Editor.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
@@ -56,7 +61,7 @@
     </PackageReference>
   </ItemGroup>
 
-  <UsingTask TaskName="EmojiDataTask" TaskFactory="TaskHostFactory" AssemblyFile="..\Greenshot.BuildTasks\bin\$(Configuration)\$(TargetFramework)\Greenshot.BuildTasks.dll" />
+  <UsingTask TaskName="EmojiDataTask" AssemblyFile="..\Greenshot.BuildTasks\bin\$(Configuration)\$(TargetFramework)\Greenshot.BuildTasks.dll" />
 
   <Target Name="GenerateEmojiTestTxtFile" BeforeTargets="BeforeBuild">
     <EmojiDataTask EmojiTestTxtFile="..\Greenshot.Editor\Controls\Emoji\emoji-test.txt" OutputFilename="$(SolutionDir)$(SolutionName)\$(OutDir)\emojis.xml" />

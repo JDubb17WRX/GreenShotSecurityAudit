@@ -39,7 +39,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="Exists('$(ProjectDir)$(ProjectName).Credentials.template')">
-    <MSBuildCommunityTasksPath>$(NuGetPackageRoot)msbuildtasks/1.5.0.235/tools/</MSBuildCommunityTasksPath>
+    <MSBuildCommunityTasksPath>$(NuGetPackageRoot)\msbuildtasks\1.5.0.235\tools\</MSBuildCommunityTasksPath>
   </PropertyGroup>
 
   <Import Project="$(MSBuildCommunityTasksPath)MSBuild.Community.Tasks.Targets" Condition="Exists('$(ProjectDir)$(ProjectName).Credentials.template')" />
@@ -61,7 +61,6 @@
       Overwrite="true" />
   </Target>
 </Project>
-
 
 
 

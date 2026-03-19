@@ -60,26 +60,33 @@ namespace Greenshot.Helpers
             // Capture the current dispatcher for use in saving editor state during shutdown
             _dispatcher = Dispatcher.CurrentDispatcher;
 
-            // Register with the Windows Restart Manager so it can restart us after updates
-            // Don't restart if the application crashes
-            ApplicationRestartManager.RegisterForRestart(commandLineArgs: "--restore");
+            try
+            {
+                // Register with the Windows Restart Manager so it can restart us after updates
+                // Don't restart if the application crashes
+                ApplicationRestartManager.RegisterForRestart(commandLineArgs: "--restore");
 
-            ApplicationRestartManager.ListenForEndSession(
-                onQuerySession: (endSessionReason) => {
-                    // Accept that an update will take place and allow the session to end
-                    return true;
-                },
-                onEndSession: (endSessionReason) =>
-                {
-                    // Do the work, save state and exit Greenshot
-                    Debug.WriteLine($"Shutting down application due to {endSessionReason}");
-                    SaveEditorState();
-                    return true;
-                }
-                ).Subscribe(endSessionMessage =>
-                {
-                    Debug.WriteLine($"{endSessionMessage.Msg} with session reason: {endSessionMessage.EndSessionReason}");
-                });
+                ApplicationRestartManager.ListenForEndSession(
+                    onQuerySession: (endSessionReason) => {
+                        // Accept that an update will take place and allow the session to end
+                        return true;
+                    },
+                    onEndSession: (endSessionReason) =>
+                    {
+                        // Do the work, save state and exit Greenshot
+                        Debug.WriteLine($"Shutting down application due to {endSessionReason}");
+                        SaveEditorState();
+                        return true;
+                    }
+                    ).Subscribe(endSessionMessage =>
+                    {
+                        Debug.WriteLine($"{endSessionMessage.Msg} with session reason: {endSessionMessage.EndSessionReason}");
+                    });
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("Failed to register automatic restart support. Continuing without Restart Manager integration.", ex);
+            }
         }
 
         /// <summary>

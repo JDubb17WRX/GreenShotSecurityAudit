@@ -80,20 +80,25 @@
     <PackageReference Include="MSBuildTasks" Version="1.5.0.235" GeneratePathProperty="true" DevelopmentDependency="true" />
   </ItemGroup>
 
+  <PropertyGroup Condition="$(MSBuildProjectName.StartsWith('Greenshot.Plugin.'))">
+    <GreenshotOutputRoot Condition="'$(SolutionDir)' != '' And '$(SolutionName)' != ''">$(SolutionDir)$(SolutionName)\$(OutDir)</GreenshotOutputRoot>
+    <GreenshotOutputRoot Condition="'$(GreenshotOutputRoot)' == ''">$(MSBuildThisFileDirectory)Greenshot\bin\$(Configuration)\$(TargetFramework)\</GreenshotOutputRoot>
+  </PropertyGroup>
+
   <Target Name="PostBuild" BeforeTargets="PostBuildEvent" Condition="$(MSBuildProjectName.StartsWith('Greenshot.Plugin.'))">
     <Exec Command="
-    IF NOT EXIST &quot;$(SolutionDir)$(SolutionName)\$(OutDir)Plugins\$(TargetName)&quot; (&#xD;&#xA;
-            mkdir &quot;$(SolutionDir)$(SolutionName)\$(OutDir)Plugins\$(TargetName)&quot;&#xD;&#xA;
+    IF NOT EXIST &quot;$(GreenshotOutputRoot)Plugins\$(TargetName)&quot; (&#xD;&#xA;
+            mkdir &quot;$(GreenshotOutputRoot)Plugins\$(TargetName)&quot;&#xD;&#xA;
         )&#xD;&#xA;
-    xcopy /f /y /d &quot;$(TargetDir)$(TargetName).*&quot; &quot;$(SolutionDir)$(SolutionName)\$(OutDir)\Plugins\$(TargetName)&quot;&#xD;&#xA;
-    xcopy /f /y /d &quot;$(TargetDir)*.dll&quot; &quot;$(SolutionDir)$(SolutionName)\$(OutDir)\Plugins\$(TargetName)&quot;&#xD;&#xA;
+    xcopy /f /y /d &quot;$(TargetDir)$(TargetName).*&quot; &quot;$(GreenshotOutputRoot)Plugins\$(TargetName)&quot;&#xD;&#xA;
+    xcopy /f /y /d &quot;$(TargetDir)*.dll&quot; &quot;$(GreenshotOutputRoot)Plugins\$(TargetName)&quot;&#xD;&#xA;
     IF EXIST &quot;$(TargetDir)Languages&quot; (&#xD;&#xA;
-        IF NOT EXIST &quot;$(SolutionDir)$(SolutionName)\$(OutDir)Languages\$(TargetName)&quot; (&#xD;&#xA;
-            mkdir &quot;$(SolutionDir)$(SolutionName)\$(OutDir)Languages\$(TargetName)&quot;&#xD;&#xA;
+        IF NOT EXIST &quot;$(GreenshotOutputRoot)Languages\$(TargetName)&quot; (&#xD;&#xA;
+            mkdir &quot;$(GreenshotOutputRoot)Languages\$(TargetName)&quot;&#xD;&#xA;
         )&#xD;&#xA;
-        xcopy /f /y /d &quot;$(TargetDir)Languages\*en-US.xml&quot; &quot;$(SolutionDir)$(SolutionName)\$(OutDir)Languages\$(TargetName)&quot;&#xD;&#xA;
+        xcopy /f /y /d &quot;$(TargetDir)Languages\*en-US.xml&quot; &quot;$(GreenshotOutputRoot)Languages\$(TargetName)&quot;&#xD;&#xA;
 	  )
-    for /f &quot;tokens=*&quot; %%F in ('dir /b /A-D $(SolutionDir)$(SolutionName)\$(OutDir)') do if EXIST &quot;$(SolutionDir)$(SolutionName)\$(OutDir)\Plugins\$(TargetName)\%%F&quot; (&#xD;&#xA;echo %%F&#xD;&#xA;del &quot;$(SolutionDir)$(SolutionName)\$(OutDir)\Plugins\$(TargetName)\%%F&quot;&#xD;&#xA;)&#xD;&#xA;
+    for /f &quot;tokens=*&quot; %%F in ('dir /b /A-D $(GreenshotOutputRoot)') do if EXIST &quot;$(GreenshotOutputRoot)Plugins\$(TargetName)\%%F&quot; (&#xD;&#xA;echo %%F&#xD;&#xA;del &quot;$(GreenshotOutputRoot)Plugins\$(TargetName)\%%F&quot;&#xD;&#xA;)&#xD;&#xA;
   " />
   </Target>
 </Project>
