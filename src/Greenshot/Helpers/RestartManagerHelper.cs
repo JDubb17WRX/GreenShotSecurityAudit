@@ -62,6 +62,7 @@ namespace Greenshot.Helpers
 
             try
             {
+                // Defensive restart registration added for user JDubb17WRX: Greenshot should keep running even if Restart Manager integration is unavailable on a host.
                 // Register with the Windows Restart Manager so it can restart us after updates
                 // Don't restart if the application crashes
                 ApplicationRestartManager.RegisterForRestart(commandLineArgs: "--restore");

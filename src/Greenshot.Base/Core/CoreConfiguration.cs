@@ -39,6 +39,7 @@ namespace Greenshot.Base.Core
     [IniSection("Core", Description = "Greenshot core configuration")]
     public class CoreConfiguration : IniSection, INotifyPropertyChanged
     {
+        // Safer defaults added for user JDubb17WRX: cloud-sharing plugins stay disabled until the user deliberately enables them.
         private static readonly List<string> HardenedDefaultExcludedPlugins = new List<string>
         {
             "Box Plugin",
@@ -421,6 +422,7 @@ namespace Greenshot.Base.Core
         public override object GetDefault(string property) =>
             property switch
             {
+                // Safer defaults added for user JDubb17WRX: first-run configs now start with external-sharing plugins excluded by default.
                 nameof(ExcludePlugins) => new List<string>(HardenedDefaultExcludedPlugins),
                 nameof(IncludePlugins) => new List<string>(),
                 nameof(OutputFileAsFullpath) => IniConfig.IsPortable ? Path.Combine(Application.StartupPath, @"..\..\Documents\Pictures\Greenshots\dummy.png") : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "dummy.png"),

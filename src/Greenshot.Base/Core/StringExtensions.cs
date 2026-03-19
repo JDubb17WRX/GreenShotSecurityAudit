@@ -32,6 +32,7 @@ namespace Greenshot.Base.Core
     public static class StringExtensions
     {
         private static readonly ILog LOG = LogManager.GetLogger(typeof(StringExtensions));
+        // Security hardening added for user JDubb17WRX: prefix DPAPI-protected secrets so decrypt can safely distinguish new values from legacy AES values.
         private const string DpapiPrefix = "dpapi:";
         private const string RGBIV = "dlgjowejgogkklwj";
         private const string KEY = "lsjvkwhvwujkagfauguwcsjgu2wueuff";
@@ -110,6 +111,7 @@ namespace Greenshot.Base.Core
             string returnValue = clearText;
             try
             {
+                // Security hardening added for user JDubb17WRX: bind encrypted settings to the current Windows user profile instead of relying on a shared static key.
                 byte[] clearTextBytes = Encoding.UTF8.GetBytes(clearText);
                 byte[] protectedBytes = ProtectedData.Protect(clearTextBytes, null, DataProtectionScope.CurrentUser);
                 returnValue = DpapiPrefix + Convert.ToBase64String(protectedBytes);
@@ -139,7 +141,7 @@ namespace Greenshot.Base.Core
                     return Encoding.UTF8.GetString(clearTextBytes);
                 }
 
-                // Legacy fallback so existing settings migrate seamlessly on the next save.
+                // Compatibility path added for user JDubb17WRX: keep reading legacy AES settings so existing installs migrate to DPAPI on their next save.
                 byte[] encryptedTextBytes = Convert.FromBase64String(encryptedText);
                 using MemoryStream ms = new MemoryStream();
                 SymmetricAlgorithm rijn = SymmetricAlgorithm.Create();

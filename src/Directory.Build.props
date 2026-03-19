@@ -81,11 +81,13 @@
   </ItemGroup>
 
   <PropertyGroup Condition="$(MSBuildProjectName.StartsWith('Greenshot.Plugin.'))">
+    <!-- Build output fallback added for user JDubb17WRX so plugin copies still land in the app output when a project builds outside the full solution context. -->
     <GreenshotOutputRoot Condition="'$(SolutionDir)' != '' And '$(SolutionName)' != ''">$(SolutionDir)$(SolutionName)\$(OutDir)</GreenshotOutputRoot>
     <GreenshotOutputRoot Condition="'$(GreenshotOutputRoot)' == ''">$(MSBuildThisFileDirectory)Greenshot\bin\$(Configuration)\$(TargetFramework)\</GreenshotOutputRoot>
   </PropertyGroup>
 
   <Target Name="PostBuild" BeforeTargets="PostBuildEvent" Condition="$(MSBuildProjectName.StartsWith('Greenshot.Plugin.'))">
+    <!-- Build copy fix added for user JDubb17WRX so plugin artifacts follow the resolved output root above in both local and CI builds. -->
     <Exec Command="
     IF NOT EXIST &quot;$(GreenshotOutputRoot)Plugins\$(TargetName)&quot; (&#xD;&#xA;
             mkdir &quot;$(GreenshotOutputRoot)Plugins\$(TargetName)&quot;&#xD;&#xA;

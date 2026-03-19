@@ -42,6 +42,7 @@ namespace Greenshot.Helpers
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(PluginHelper));
         private static readonly CoreConfiguration CoreConfig = IniConfig.GetIniSection<CoreConfiguration>();
+        // Plugin loading hardening added for user JDubb17WRX: only ship and activate the known built-in plugin assemblies.
         private static readonly ISet<string> BuiltInPluginAssemblyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "Greenshot.Plugin.Box",
@@ -194,6 +195,7 @@ namespace Greenshot.Helpers
             if (!Directory.Exists(path)) return pluginFiles;
             try
             {
+                // Plugin loading hardening added for user JDubb17WRX: avoid recursive probing so stray DLLs in nested folders cannot be discovered implicitly.
                 pluginFiles = Directory.GetFiles(path, "Greenshot.Plugin.*.dll", SearchOption.TopDirectoryOnly)
                     .Where(IsPluginPathTrusted)
                     .Where(IsKnownBuiltInPlugin);
@@ -210,6 +212,7 @@ namespace Greenshot.Helpers
         {
             try
             {
+                // Plugin loading hardening added for user JDubb17WRX: accept only plugin DLLs that resolve under the installed application roots.
                 var fullPluginPath = Path.GetFullPath(pluginFile);
                 var trustedRoots = new[]
                 {
@@ -229,6 +232,7 @@ namespace Greenshot.Helpers
         private static bool IsKnownBuiltInPlugin(string pluginFile)
         {
             var assemblyName = Path.GetFileNameWithoutExtension(pluginFile);
+            // Plugin loading hardening added for user JDubb17WRX: reject plugin names that are not explicitly allowlisted above.
             var isKnown = BuiltInPluginAssemblyNames.Contains(assemblyName);
             if (!isKnown)
             {

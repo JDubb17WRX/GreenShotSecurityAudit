@@ -24,6 +24,7 @@
     <PackageReference Include="Dapplo.Windows.AppRestartManager" Version="2.0.83" />
     <PackageReference Include="SixLabors.ImageSharp" Version="2.1.13" />
     <PackageReference Include="System.CommandLine" Version="3.0.0-preview.1.26104.118" />
+    <!-- CI resource-build fix added for user JDubb17WRX so non-string .resx content has the required runtime assembly during clean rebuilds. -->
     <PackageReference Include="System.Resources.Extensions" Version="10.0.3" />
     <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" version="7.1.3" />
   </ItemGroup>
@@ -39,6 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Project references restored for user JDubb17WRX so CI can build dependencies in the right order instead of relying on prebuilt local DLLs. -->
     <ProjectReference Include="..\Greenshot.Base\Greenshot.Base.csproj" />
     <ProjectReference Include="..\Greenshot.Editor\Greenshot.Editor.csproj" />
   </ItemGroup>
@@ -56,6 +58,7 @@
     </PackageReference>
   </ItemGroup>
 
+  <!-- Build-task loading change added for user JDubb17WRX so the task resolves from the built assembly without TaskHostFactory-specific failures. -->
   <UsingTask TaskName="EmojiDataTask" AssemblyFile="..\Greenshot.BuildTasks\bin\$(Configuration)\$(TargetFramework)\Greenshot.BuildTasks.dll" />
 
   <Target Name="GenerateEmojiTestTxtFile" BeforeTargets="BeforeBuild">
