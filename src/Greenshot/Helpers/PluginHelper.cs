@@ -42,6 +42,16 @@ namespace Greenshot.Helpers
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(PluginHelper));
         private static readonly CoreConfiguration CoreConfig = IniConfig.GetIniSection<CoreConfiguration>();
+        private static readonly ISet<string> BuiltInPluginAssemblyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Greenshot.Plugin.Box",
+            "Greenshot.Plugin.Confluence",
+            "Greenshot.Plugin.Dropbox",
+            "Greenshot.Plugin.ExternalCommand",
+            "Greenshot.Plugin.Imgur",
+            "Greenshot.Plugin.Jira",
+            "Greenshot.Plugin.Office"
+        };
 
         private static readonly string ApplicationPath = Path.GetDirectoryName(Application.ExecutablePath);
         private static readonly string PafPath = Path.Combine(Application.StartupPath, @"App\Greenshot");
@@ -184,7 +194,9 @@ namespace Greenshot.Helpers
             if (!Directory.Exists(path)) return pluginFiles;
             try
             {
-                pluginFiles = Directory.GetFiles(path, "Greenshot.Plugin.*.dll", SearchOption.AllDirectories);
+                pluginFiles = Directory.GetFiles(path, "Greenshot.Plugin.*.dll", SearchOption.TopDirectoryOnly)
+                    .Where(IsPluginPathTrusted)
+                    .Where(IsKnownBuiltInPlugin);
             }
             catch (Exception ex)
             {
@@ -192,6 +204,38 @@ namespace Greenshot.Helpers
             }
 
             return pluginFiles;
+        }
+
+        private static bool IsPluginPathTrusted(string pluginFile)
+        {
+            try
+            {
+                var fullPluginPath = Path.GetFullPath(pluginFile);
+                var trustedRoots = new[]
+                {
+                    Path.GetFullPath(ApplicationPath + Path.DirectorySeparatorChar),
+                    Path.GetFullPath(PafPath + Path.DirectorySeparatorChar)
+                };
+
+                return trustedRoots.Any(root => fullPluginPath.StartsWith(root, StringComparison.OrdinalIgnoreCase));
+            }
+            catch (Exception ex)
+            {
+                Log.Warn($"Skipping untrusted plugin path '{pluginFile}'", ex);
+                return false;
+            }
+        }
+
+        private static bool IsKnownBuiltInPlugin(string pluginFile)
+        {
+            var assemblyName = Path.GetFileNameWithoutExtension(pluginFile);
+            var isKnown = BuiltInPluginAssemblyNames.Contains(assemblyName);
+            if (!isKnown)
+            {
+                Log.WarnFormat("Skipping unknown plugin assembly '{0}' from {1}", assemblyName, pluginFile);
+            }
+
+            return isKnown;
         }
 
         /// <summary>

@@ -39,6 +39,15 @@ namespace Greenshot.Base.Core
     [IniSection("Core", Description = "Greenshot core configuration")]
     public class CoreConfiguration : IniSection, INotifyPropertyChanged
     {
+        private static readonly List<string> HardenedDefaultExcludedPlugins = new List<string>
+        {
+            "Box Plugin",
+            "Confluence Plugin",
+            "Dropbox Plugin",
+            "Imgur Plugin",
+            "Jira Plugin"
+        };
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         [IniProperty("Language", Description = "The language in IETF format (e.g. en-US)")]
@@ -412,7 +421,7 @@ namespace Greenshot.Base.Core
         public override object GetDefault(string property) =>
             property switch
             {
-                nameof(ExcludePlugins) => new List<string>(),
+                nameof(ExcludePlugins) => new List<string>(HardenedDefaultExcludedPlugins),
                 nameof(IncludePlugins) => new List<string>(),
                 nameof(OutputFileAsFullpath) => IniConfig.IsPortable ? Path.Combine(Application.StartupPath, @"..\..\Documents\Pictures\Greenshots\dummy.png") : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "dummy.png"),
                 nameof(OutputFilePath) => CreateOutputFilePath(),

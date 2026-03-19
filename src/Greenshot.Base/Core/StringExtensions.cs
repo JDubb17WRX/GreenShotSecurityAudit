@@ -32,6 +32,7 @@ namespace Greenshot.Base.Core
     public static class StringExtensions
     {
         private static readonly ILog LOG = LogManager.GetLogger(typeof(StringExtensions));
+        private const string DpapiPrefix = "dpapi:";
         private const string RGBIV = "dlgjowejgogkklwj";
         private const string KEY = "lsjvkwhvwujkagfauguwcsjgu2wueuff";
 
@@ -109,17 +110,9 @@ namespace Greenshot.Base.Core
             string returnValue = clearText;
             try
             {
-                byte[] clearTextBytes = Encoding.ASCII.GetBytes(clearText);
-                SymmetricAlgorithm rijn = SymmetricAlgorithm.Create();
-
-                using MemoryStream ms = new MemoryStream();
-                byte[] rgbIV = Encoding.ASCII.GetBytes(RGBIV);
-                byte[] key = Encoding.ASCII.GetBytes(KEY);
-                using CryptoStream cs = new CryptoStream(ms, rijn.CreateEncryptor(key, rgbIV), CryptoStreamMode.Write);
-                cs.Write(clearTextBytes, 0, clearTextBytes.Length);
-                cs.FlushFinalBlock();
-
-                returnValue = Convert.ToBase64String(ms.ToArray());
+                byte[] clearTextBytes = Encoding.UTF8.GetBytes(clearText);
+                byte[] protectedBytes = ProtectedData.Protect(clearTextBytes, null, DataProtectionScope.CurrentUser);
+                returnValue = DpapiPrefix + Convert.ToBase64String(protectedBytes);
             }
             catch (Exception ex)
             {
@@ -139,6 +132,14 @@ namespace Greenshot.Base.Core
             string returnValue = encryptedText;
             try
             {
+                if (encryptedText.StartsWith(DpapiPrefix, StringComparison.Ordinal))
+                {
+                    byte[] protectedBytes = Convert.FromBase64String(encryptedText.Substring(DpapiPrefix.Length));
+                    byte[] clearTextBytes = ProtectedData.Unprotect(protectedBytes, null, DataProtectionScope.CurrentUser);
+                    return Encoding.UTF8.GetString(clearTextBytes);
+                }
+
+                // Legacy fallback so existing settings migrate seamlessly on the next save.
                 byte[] encryptedTextBytes = Convert.FromBase64String(encryptedText);
                 using MemoryStream ms = new MemoryStream();
                 SymmetricAlgorithm rijn = SymmetricAlgorithm.Create();
