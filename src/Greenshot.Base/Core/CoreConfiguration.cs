@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 using Dapplo.Windows.Common.Structs;
@@ -76,7 +77,7 @@ namespace Greenshot.Base.Core
         public bool IsFirstLaunch { get; set; }
 
         [IniProperty("Destinations", Separator = ",",
-            Description = "Which destinations? Possible options (more might be added by plugins) are: Editor, FileDefault, FileWithDialog, Clipboard, Printer, EMail, Picker",
+            Description = "Which destinations? Supported options in this build are: Editor, FileDialog, Clipboard, Outlook, Picker",
             DefaultValue = "Picker")]
         public List<string> OutputDestinations { get; set; } = new List<string>();
 
@@ -542,10 +543,17 @@ namespace Greenshot.Base.Core
                 OutputDestinations = new List<string>();
             }
 
+            // JDubb17WRX: sanitize persisted destination config so stale settings cannot re-enable removed exports.
+            OutputDestinations = DestinationPolicy.SanitizeDestinations(OutputDestinations);
+            if (OutputDestinations.Any(destination => nameof(WellKnownDestinations.Picker).Equals(destination, StringComparison.OrdinalIgnoreCase)))
+            {
+                OutputDestinations = DestinationPolicy.DefaultOutputDestinations;
+            }
+
             // Make sure there is an output!
             if (OutputDestinations.Count == 0)
             {
-                OutputDestinations.Add("Editor");
+                OutputDestinations = DestinationPolicy.DefaultOutputDestinations;
             }
 
             // Prevent both settings at once, bug #3435056

@@ -59,65 +59,11 @@ namespace Greenshot.Plugin.Office
         private IEnumerable<IDestination> Destinations()
         {
             IDestination destination;
-            try
-            {
-                destination = new ExcelDestination();
-            }
-            catch
-            {
-                destination = null;
-            }
-
-            if (destination != null)
-            {
-                yield return destination;
-            }
 
             try
             {
-                destination = new PowerpointDestination();
-            }
-            catch
-            {
-                destination = null;
-            }
-
-            if (destination != null)
-            {
-                yield return destination;
-            }
-
-            try
-            {
-                destination = new WordDestination();
-            }
-            catch
-            {
-                destination = null;
-            }
-
-            if (destination != null)
-            {
-                yield return destination;
-            }
-
-            try
-            {
+                // JDubb17WRX: only expose Outlook from the Office plugin in this trimmed build.
                 destination = new OutlookDestination();
-            }
-            catch
-            {
-                destination = null;
-            }
-
-            if (destination != null)
-            {
-                yield return destination;
-            }
-
-            try
-            {
-                destination = new OneNoteDestination();
             }
             catch
             {

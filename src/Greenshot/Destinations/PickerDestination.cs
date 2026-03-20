@@ -19,6 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Greenshot.Base;
@@ -49,22 +50,10 @@ namespace Greenshot.Destinations
         /// <returns>true if export was made</returns>
         public override ExportInformation ExportCapture(bool manuallyInitiated, ISurface surface, ICaptureDetails captureDetails)
         {
-            List<IDestination> destinations = new List<IDestination>();
-
-            foreach (var destination in SimpleServiceProvider.Current.GetAllInstances<IDestination>().OrderBy(p => p.Priority).ThenBy(p => p.Description))
-            {
-                if ("Picker".Equals(destination.Designation))
-                {
-                    continue;
-                }
-
-                if (!destination.IsActive)
-                {
-                    continue;
-                }
-
-                destinations.Add(destination);
-            }
+            // JDubb17WRX: build the picker from the shared filtered destination list so removed exports never reappear here.
+            List<IDestination> destinations = DestinationHelper.GetAllDestinations()
+                .Where(destination => !nameof(WellKnownDestinations.Picker).Equals(destination.Designation, StringComparison.OrdinalIgnoreCase))
+                .ToList();
 
             // No Processing, this is done in the selected destination (if anything was selected)
             return ShowPickerMenu(true, surface, captureDetails, destinations);

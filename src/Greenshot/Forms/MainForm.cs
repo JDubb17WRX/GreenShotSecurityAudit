@@ -394,7 +394,7 @@ namespace Greenshot.Forms
             // we should have at least one!
             if (_conf.OutputDestinations.Count == 0)
             {
-                _conf.OutputDestinations.Add(EditorDestination.DESIGNATION);
+                _conf.OutputDestinations.AddRange(DestinationPolicy.DefaultOutputDestinations);
             }
 
             if (_conf.DisableQuickSettings)
@@ -464,14 +464,10 @@ namespace Greenshot.Forms
         {
             var internalDestinations = new List<IDestination>
             {
-                new FileDestination(),
+                // JDubb17WRX: keep the built-in destination surface limited to Save As, Clipboard, Picker, and the editor fallback.
                 new FileWithDialogDestination(),
                 new ClipboardDestination(),
-                new PrinterDestination(),
-                new EmailDestination(),
-                new PickerDestination(),
-                new Win10ShareDestination(),
-                new Win10OcrDestination()
+                new PickerDestination()
             };
             
             bool useEditor = false;
@@ -1044,6 +1040,7 @@ namespace Greenshot.Forms
             }
 
             ToolStripMenuSelectList selectList;
+            IniValue iniValue;
             if (!_conf.Values["Destinations"].IsFixed)
             {
                 // screenshot destination
@@ -1079,28 +1076,30 @@ namespace Greenshot.Forms
             }
 
             // print options
-            selectList = new ToolStripMenuSelectList("printoptions", true, this)
+            if (DestinationHelper.GetDestination(nameof(WellKnownDestinations.Printer)) != null)
             {
-                Text = Language.GetString(LangKey.settings_printoptions)
-            };
-
-            IniValue iniValue;
-            foreach (string propertyName in _conf.Values.Keys)
-            {
-                if (propertyName.StartsWith("OutputPrint"))
+                selectList = new ToolStripMenuSelectList("printoptions", true, this)
                 {
-                    iniValue = _conf.Values[propertyName];
-                    if (iniValue.Attributes.LanguageKey != null && !iniValue.IsFixed)
+                    Text = Language.GetString(LangKey.settings_printoptions)
+                };
+
+                foreach (string propertyName in _conf.Values.Keys)
+                {
+                    if (propertyName.StartsWith("OutputPrint"))
                     {
-                        selectList.AddItem(Language.GetString(iniValue.Attributes.LanguageKey), iniValue, (bool) iniValue.Value);
+                        iniValue = _conf.Values[propertyName];
+                        if (iniValue.Attributes.LanguageKey != null && !iniValue.IsFixed)
+                        {
+                            selectList.AddItem(Language.GetString(iniValue.Attributes.LanguageKey), iniValue, (bool) iniValue.Value);
+                        }
                     }
                 }
-            }
 
-            if (selectList.DropDownItems.Count > 0)
-            {
-                selectList.CheckedChanged += QuickSettingBoolItemChanged;
-                contextmenu_quicksettings.DropDownItems.Add(selectList);
+                if (selectList.DropDownItems.Count > 0)
+                {
+                    selectList.CheckedChanged += QuickSettingBoolItemChanged;
+                    contextmenu_quicksettings.DropDownItems.Add(selectList);
+                }
             }
 
             // effects

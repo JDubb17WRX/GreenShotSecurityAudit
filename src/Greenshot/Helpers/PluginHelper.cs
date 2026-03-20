@@ -42,15 +42,9 @@ namespace Greenshot.Helpers
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(PluginHelper));
         private static readonly CoreConfiguration CoreConfig = IniConfig.GetIniSection<CoreConfiguration>();
-        // Plugin loading hardening added for user JDubb17WRX: only ship and activate the known built-in plugin assemblies.
+        // JDubb17WRX: only activate the Office plugin that provides the supported Outlook destination in this reduced build.
         private static readonly ISet<string> BuiltInPluginAssemblyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "Greenshot.Plugin.Box",
-            "Greenshot.Plugin.Confluence",
-            "Greenshot.Plugin.Dropbox",
-            "Greenshot.Plugin.ExternalCommand",
-            "Greenshot.Plugin.Imgur",
-            "Greenshot.Plugin.Jira",
             "Greenshot.Plugin.Office"
         };
 

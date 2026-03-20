@@ -102,6 +102,7 @@ namespace Greenshot.Forms
 
             _daysBetweenCheckPreviousValue = (int) numericUpDown_daysbetweencheck.Value;
             DisplayPluginTab();
+            DisplayPrinterTab();
             UpdateUi();
             ExpertSettingsEnableState(false);
             DisplaySettings();
@@ -287,6 +288,15 @@ namespace Greenshot.Forms
 
             // Disable the configure button, it will be enabled when a plugin is selected AND isConfigurable
             button_pluginconfigure.Enabled = false;
+        }
+
+        private void DisplayPrinterTab()
+        {
+            // JDubb17WRX: remove printer settings when the printer destination is disabled for this build.
+            if (DestinationHelper.GetDestination(nameof(WellKnownDestinations.Printer)) == null && tab_printer.Parent != null)
+            {
+                tabcontrol.TabPages.Remove(tab_printer);
+            }
         }
 
         /// <summary>

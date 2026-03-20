@@ -40,6 +40,8 @@ namespace Greenshot.Base.Core
         public static IEnumerable<IDestination> GetAllDestinations()
         {
             return SimpleServiceProvider.Current.GetAllInstances<IDestination>()
+                // JDubb17WRX: enforce the trimmed destination allowlist before any UI or workflow can enumerate destinations.
+                .Where(destination => DestinationPolicy.IsAllowedDestination(destination.Designation))
                 .Where(destination => destination.IsActive)
                 .Where(destination => CoreConfig.ExcludeDestinations == null ||
                                       !CoreConfig.ExcludeDestinations.Contains(destination.Designation)).OrderBy(p => p.Priority).ThenBy(p => p.Description);
@@ -52,14 +54,15 @@ namespace Greenshot.Base.Core
         /// <returns>IDestination or null</returns>
         public static IDestination GetDestination(string designation)
         {
-            if (designation == null)
+            // JDubb17WRX: block direct lookups for destinations that are intentionally removed from this build.
+            if (!DestinationPolicy.IsAllowedDestination(designation))
             {
                 return null;
             }
 
             foreach (IDestination destination in GetAllDestinations())
             {
-                if (designation.Equals(destination.Designation))
+                if (designation.Equals(destination.Designation, System.StringComparison.OrdinalIgnoreCase))
                 {
                     return destination;
                 }

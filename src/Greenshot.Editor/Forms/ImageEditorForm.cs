@@ -310,6 +310,8 @@ namespace Greenshot.Editor.Forms
             toolStripSeparator12.Visible = !coreConfiguration.DisableSettings;
             toolStripSeparator11.Visible = !coreConfiguration.DisableSettings;
             btnSettings.Visible = !coreConfiguration.DisableSettings;
+            // JDubb17WRX: hide print affordances in the reduced build instead of leaving a dead-end action in the editor.
+            btnPrint.Visible = DestinationHelper.GetDestination(nameof(WellKnownDestinations.Printer)) != null;
 
             // Text obfuscation is only available for beta testers
             obfuscateTextToolStripMenuItem.Visible = CoreConfiguration.IsBetaTester;
@@ -337,6 +339,13 @@ namespace Greenshot.Editor.Forms
             }
 
             ApplyLanguage();
+
+            var saveDestination = DestinationHelper.GetDestination(nameof(WellKnownDestinations.FileDialog));
+            if (saveDestination != null)
+            {
+                btnSave.Text = saveDestination.Description;
+                btnSave.ToolTipText = saveDestination.Description;
+            }
         }
 
         /// <summary>
@@ -696,13 +705,8 @@ namespace Greenshot.Editor.Forms
 
         private void BtnSaveClick(object sender, EventArgs e)
         {
-            var destinationDesignation = WellKnownDestinations.FileNoDialog;
-            if (_surface.LastSaveFullPath == null)
-            {
-                destinationDesignation = WellKnownDestinations.FileDialog;
-            }
-
-            DestinationHelper.ExportCapture(true, destinationDesignation, _surface, _surface.CaptureDetails);
+            // JDubb17WRX: always route editor saves through the Save As dialog to keep only the approved file export path.
+            DestinationHelper.ExportCapture(true, WellKnownDestinations.FileDialog, _surface, _surface.CaptureDetails);
         }
 
         private void BtnClipboardClick(object sender, EventArgs e)
