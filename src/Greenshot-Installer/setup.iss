@@ -10,6 +10,7 @@
 #define ReleaseDir "..\Greenshot\bin\Release\net480"
 #define PluginDir "..\Greenshot\bin\Release\net480\Plugins"
 #define CertumThumbprint GetEnv('CertumThumbprint')
+#define GitHubActions GetEnv('GITHUB_ACTIONS')
 #define DefaultInstallFlags "overwritereadonly ignoreversion"
 
 [Files]
@@ -80,8 +81,8 @@ Source: {#LanguagesDir}\*vi-VN*; Excludes: "*installer*,*website*"; DestDir: {ap
 Source: {#LanguagesDir}\*zh-CN*; Excludes: "*installer*,*website*"; DestDir: {app}\Languages; Components: languages\zhCN; Flags: {#DefaultInstallFlags};
 Source: {#LanguagesDir}\*zh-TW*; Excludes: "*installer*,*website*"; DestDir: {app}\Languages; Components: languages\zhTW; Flags: {#DefaultInstallFlags};
 
-; JDubb17WRX: trimmed build, only ship the Office plugin that provides the supported Outlook destination.
-Source: {#PluginDir}\Greenshot.Plugin.Office\Greenshot.Plugin.Office.dll; DestDir: {app}\Plugins\Office; Components: plugins\office; Flags: {#DefaultInstallFlags};
+; JDubb17WRX: install the Office plugin as part of the fixed core payload so no other plugin option is exposed in this trimmed build.
+Source: {#PluginDir}\Greenshot.Plugin.Office\Greenshot.Plugin.Office.dll; DestDir: {app}\Plugins\Office; Components: greenshot; Flags: {#DefaultInstallFlags};
 
 [Setup]
 ; changes associations is used when the installer installs new extensions, it clears the explorer icon cache
@@ -118,12 +119,18 @@ PrivilegesRequired=admin
 UsePreviousPrivileges=no
 
 SetupIconFile=..\Greenshot\icons\applicationIcon\icon.ico
-#if CertumThumbprint  != ""
- OutputBaseFilename={#ExeName}-INSTALLER-{#VersionEnhanced}-UNSTABLE
+#if CertumThumbprint != ""
+ ; JDubb17WRX: use the simple release version in installer file names so local main builds keep a clean release-style artifact name.
+ OutputBaseFilename={#ExeName}-INSTALLER-{#Version}
   SignTool=SignTool sign /sha1 "{#CertumThumbprint}" /tr http://time.certum.pl /td sha256 /fd sha256 /v $f
   SignedUninstaller=yes
 #else
-  OutputBaseFilename={#ExeName}-INSTALLER-{#VersionEnhanced}-UNSTABLE-UNSIGNED
+  ; JDubb17WRX: preserve the unsigned suffix for CI artifacts, but keep local release-style builds clean when no signing certificate is configured.
+  #if GitHubActions == "true"
+    OutputBaseFilename={#ExeName}-INSTALLER-{#Version}-UNSIGNED
+  #else
+    OutputBaseFilename={#ExeName}-INSTALLER-{#Version}
+  #endif
 #endif
 UninstallDisplayIcon={app}\{#ExeName}.exe
 Uninstallable=yes
@@ -466,7 +473,6 @@ Name: "custom"; Description: "{code:CustomInstall}"; Flags: iscustom
 [Components]
 Name: "disablesnippingtool"; Description: {cm:disablewin11snippingtool}; Flags: disablenouninstallwarning; Types: default full custom
 Name: "greenshot"; Description: "Greenshot"; Types: default full compact custom; Flags: fixed
-Name: "plugins\office"; Description: {cm:office}; Types: default full custom; Flags: disablenouninstallwarning
 Name: "languages"; Description: {cm:language}; Types: full custom; Flags: disablenouninstallwarning
 Name: "languages\arSY"; Description: {cm:arSY}; Types: full custom; Flags: disablenouninstallwarning; Check: hasLanguageGroup('d')
 Name: "languages\caCA"; Description: {cm:caCA}; Types: full custom; Flags: disablenouninstallwarning; Check: hasLanguageGroup('1')

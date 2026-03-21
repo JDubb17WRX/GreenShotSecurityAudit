@@ -50,6 +50,8 @@ namespace Greenshot.Forms
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(SettingsForm));
         private readonly ToolTip _toolTip = new ToolTip();
+        private ListViewItem _clipboardFormatsTooltipItem;
+        private bool _clipboardFormatsListLayoutAdjusted;
         private bool _inHotkey;
         private int _daysBetweenCheckPreviousValue;
 
@@ -58,6 +60,9 @@ namespace Greenshot.Forms
             InitializeComponent();
             // Make sure we change the icon size depending on the scaling
             DpiChanged += AdjustToDpi;
+            listview_clipboardformats.MouseMove += Listview_clipboardformatsMouseMove;
+            listview_clipboardformats.MouseLeave += Listview_clipboardformatsMouseLeave;
+            listview_clipboardformats.Resize += Listview_clipboardformatsResize;
 
             // Make sure the store isn't called to early, that's why we do it manually
             ManualStoreFields = true;
@@ -107,6 +112,7 @@ namespace Greenshot.Forms
             ExpertSettingsEnableState(false);
             DisplaySettings();
             CheckSettings();
+            ConfigureClipboardFormatsListView();
         }
 
         /// <summary>
@@ -413,6 +419,106 @@ namespace Greenshot.Forms
                 ClipboardFormat cf = (ClipboardFormat) item.Tag;
                 item.Text = Language.Translate(cf);
             }
+
+            ResizeClipboardFormatsColumn();
+        }
+
+        private void ConfigureClipboardFormatsListView()
+        {
+            ResizeClipboardFormatsColumn();
+
+            if (_clipboardFormatsListLayoutAdjusted || listview_clipboardformats.Items.Count == 0)
+            {
+                return;
+            }
+
+            const int minimumVisibleClipboardFormats = 4;
+            int desiredVisibleItems = Math.Min(minimumVisibleClipboardFormats, listview_clipboardformats.Items.Count);
+            int rowHeight = GetClipboardFormatsRowHeight();
+            int desiredHeight = (desiredVisibleItems * rowHeight) + 4;
+            int delta = desiredHeight - listview_clipboardformats.Height;
+            if (delta <= 0)
+            {
+                _clipboardFormatsListLayoutAdjusted = true;
+                return;
+            }
+
+            listview_clipboardformats.Height = desiredHeight;
+            MoveExpertControlsBelowClipboardFormats(delta);
+            groupbox_expert.Height += delta;
+            _clipboardFormatsListLayoutAdjusted = true;
+        }
+
+        private int GetClipboardFormatsRowHeight()
+        {
+            if (listview_clipboardformats.Items.Count > 0)
+            {
+                Rectangle itemBounds = listview_clipboardformats.GetItemRect(0);
+                if (itemBounds.Height > 0)
+                {
+                    return itemBounds.Height;
+                }
+            }
+
+            return Math.Max(TextRenderer.MeasureText("ClipboardFormat", listview_clipboardformats.Font).Height + 6, 18);
+        }
+
+        private void MoveExpertControlsBelowClipboardFormats(int delta)
+        {
+            int firstControlBelowClipboardFormats = checkbox_autoreducecolors.Top;
+            foreach (Control control in groupbox_expert.Controls)
+            {
+                if (control == listview_clipboardformats || control == checkbox_enableexpert || control == label_clipboardformats)
+                {
+                    continue;
+                }
+
+                if (control.Top >= firstControlBelowClipboardFormats)
+                {
+                    control.Top += delta;
+                }
+            }
+        }
+
+        private void ResizeClipboardFormatsColumn()
+        {
+            const int horizontalPadding = 8;
+            int availableWidth = listview_clipboardformats.ClientSize.Width - SystemInformation.VerticalScrollBarWidth - horizontalPadding;
+            columnHeader1.Width = Math.Max(availableWidth, 0);
+        }
+
+        private void Listview_clipboardformatsResize(object sender, EventArgs e)
+        {
+            ResizeClipboardFormatsColumn();
+        }
+
+        private void Listview_clipboardformatsMouseLeave(object sender, EventArgs e)
+        {
+            _clipboardFormatsTooltipItem = null;
+            _toolTip.SetToolTip(listview_clipboardformats, null);
+        }
+
+        private void Listview_clipboardformatsMouseMove(object sender, MouseEventArgs e)
+        {
+            ListViewItem hoveredItem = listview_clipboardformats.HitTest(e.Location).Item;
+            if (ReferenceEquals(_clipboardFormatsTooltipItem, hoveredItem))
+            {
+                return;
+            }
+
+            _clipboardFormatsTooltipItem = hoveredItem;
+            _toolTip.SetToolTip(listview_clipboardformats, GetClipboardFormatsTooltipText(hoveredItem));
+        }
+
+        private string GetClipboardFormatsTooltipText(ListViewItem item)
+        {
+            if (item == null)
+            {
+                return null;
+            }
+
+            int measuredWidth = TextRenderer.MeasureText(item.Text, listview_clipboardformats.Font, new Size(int.MaxValue, int.MaxValue), TextFormatFlags.SingleLine).Width;
+            return measuredWidth > columnHeader1.Width ? item.Text : null;
         }
 
         /// <summary>

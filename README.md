@@ -27,7 +27,7 @@ The reduced build currently does the following:
 * Limits the destination picker to the approved destinations only.
 * Keeps the Office plugin, but exposes Outlook only.
 * Restricts runtime plugin activation to the Office plugin.
-* Ships only the Office plugin in the installer for this fork.
+* Installs the Office plugin as the only bundled plugin, without exposing extra plugin choices in the installer.
 
 Supported user workflows
 ------------------------

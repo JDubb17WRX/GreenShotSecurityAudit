@@ -163,7 +163,11 @@ jobs:
 
       - name: Create ZIP archive
         run: |
-          $zipName = "Greenshot-PORTABLE-${{ needs.pre_deploy.outputs.version }}-UNSTABLE-UNSIGNED.zip"
+          if ("${{ env.IS_MAIN_OR_RELEASE_BRANCH }}" -eq "true") {
+            $zipName = "Greenshot-PORTABLE-${{ needs.pre_deploy.outputs.version }}.zip"
+          } else {
+            $zipName = "Greenshot-PORTABLE-${{ needs.pre_deploy.outputs.version }}-UNSTABLE.zip"
+          }
           Compress-Archive -Path "${{ github.workspace }}/portable/*" -DestinationPath $zipName -Force
         shell: pwsh
       
